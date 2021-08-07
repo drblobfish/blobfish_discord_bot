@@ -9,6 +9,7 @@ import constants as c
 
 
 intents = discord.Intents.default()
+intents.members = True
 
 client = commands.Bot(command_prefix = '²',intents=intents)
 
@@ -59,6 +60,7 @@ async def deploy_chooser_msg(ctx):
 		await role_chooser_msg.add_reaction(discord.utils.get(ctx.message.guild.emojis,name=elem))
 
 
+
 @client.event
 async def on_raw_reaction_add(reaction):
 
@@ -77,8 +79,28 @@ async def on_raw_reaction_add(reaction):
 
 		await reaction.member.add_roles(role)
 
-		print("Changed role of ",reaction.member.name,"to", role_name)
+		print(f"Added role {role_name} to {reaction.member.name}.")
 
+
+@client.event
+async def on_raw_reaction_remove(reaction):
+
+	if reaction.message_id != role_chooser_msg_id:
+		return
+
+	guild = client.get_guild(reaction.guild_id)
+	member = guild.get_member(reaction.user_id)
+
+	emoji_name = reaction.emoji.name
+	role_name = c.elements[emoji_name]
+
+	if role_name in {role.name for role in member.roles}:
+
+		role = discord.utils.get(member.roles,name=role_name)
+
+		await member.remove_roles(role)
+
+		print(f"Removed role {role_name} to {member.name}.")
 
 @client.command()
 async def ping(ctx):
