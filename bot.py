@@ -62,18 +62,22 @@ async def deploy_chooser_msg(ctx):
 @client.event
 async def on_raw_reaction_add(reaction):
 
-	print("")
-	print(reaction.message_id)
-	print(role_chooser_msg_id)
-
 	if reaction.message_id != role_chooser_msg_id:
-		print("someone added a reaction in the wrong place")
 		return
 
-	print("someone added a reaction in the right place")
-	'''if reaction.emoji == "🏃":
-		Role = discord.utils.get(user.server.roles, name="YOUR_ROLE_NAME_HERE")
-		await client.add_roles(user, Role)'''
+	emoji_name = reaction.emoji.name
+
+	if emoji_name in c.elements.keys():
+
+		guild = client.get_guild(reaction.guild_id)
+
+		role_name = c.elements[emoji_name]
+
+		role = discord.utils.get(guild.roles,name=role_name)
+
+		await reaction.member.add_roles(role)
+
+		print("Changed role of ",reaction.member.name,"to", role_name)
 
 
 @client.command()
