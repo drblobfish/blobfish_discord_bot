@@ -12,7 +12,7 @@ intents = discord.Intents.default()
 intents.members = True
 
 client = commands.Bot(command_prefix = '²',intents=intents)
-
+client.remove_command('help')
 
 role_chooser_msg_id=0
 
@@ -106,6 +106,33 @@ async def on_raw_reaction_remove(reaction):
 async def ping(ctx):
 	print("ping")
 	await ctx.send('Pong !')
+
+@client.command()
+async def kill(ctx):
+	await ctx.send('Aaargh !')
+	exit()
+
+@client.command()
+async def test_de_turing(ctx):
+	await ctx.send('https://tenor.com/view/captcha-google-im-not-a-robot-gif-17752213')
+
+@client.command()
+async def tell_the_truth(ctx):
+	await ctx.send('Les Néons best promo')
+
+@client.command()
+async def help(ctx):
+	help_message = '''
+	**FDV Big Bang Bot** :
+	`²deploy_roles` : créé les un rôle pour chacune des 10 promos
+	`²delete_roles` : supprime tout les rôles de promos
+	`²deploy_chooser_msg` : créé le message avec les réaction pour choisir sa promo
+	`²kill` : termine le programme python. A utiliser au cas où le bot se rebelle contre les humains
+	`²github` : lien vers le code du bot
+	`²test_de_turing` : à utiliser pour vérifier que le bot est bien un robot
+	`²tell_the_truth` : la vérité, même si elle est difficile à accepter
+	'''
+	await ctx.send(help_message)
 
 @client.command(aliases = ['source', 'github', 'code'])
 async def code_source(ctx):
