@@ -9,17 +9,21 @@ import constants as c
 
 
 intents = discord.Intents.default()
-intents.members = True
+intents.members = True #allow to see the list of members
 
 client = commands.Bot(command_prefix = '²',intents=intents)
 client.remove_command('help')
 
+#role_chooser_msg is the message that is used to get a role
+#the bot has to keep in memory which message it is
 role_chooser_msg_id=0
 
 
 @client.event
 async def on_ready():
 
+	#loads the chooser message id from the previous session
+	# it is stored as a .pick files
 	with open('cache.pick','rb') as cache_file:
 		global role_chooser_msg_id
 
@@ -33,13 +37,16 @@ async def on_disconnect():
 
 @client.command()
 async def deploy_roles(ctx):
+	#deletes the message of the command
 	await ctx.message.delete()
 
+	# creates a role for each element
 	for elem in c.elements.values():
 		await ctx.guild.create_role(name=elem)
 
 @client.command()
 async def delete_roles(ctx):
+	# delete every role that has an element name
 	for role in ctx.guild.roles:
 		if role.name in c.elements.values():
 			await role.delete()
@@ -50,12 +57,15 @@ async def deploy_chooser_msg(ctx):
 
 	role_chooser_msg = await ctx.send('Choisissez votre promo en cliquant sur les emotes')
 
+	#stores globally which message is the chooser message
 	global role_chooser_msg_id
 	role_chooser_msg_id = role_chooser_msg.id
 
+	#stores on the disk which message is the chooser message
 	with open('cache.pick','wb') as cache_file:
 		pickle.dump(role_chooser_msg_id,cache_file)
 	
+	#adds a reaction for each element
 	for elem in c.elements.keys():
 		await role_chooser_msg.add_reaction(discord.utils.get(ctx.message.guild.emojis,name=elem))
 
@@ -63,12 +73,12 @@ async def deploy_chooser_msg(ctx):
 
 @client.event
 async def on_raw_reaction_add(reaction):
-
+	#if the message that get a reaction is the chooser message
 	if reaction.message_id != role_chooser_msg_id:
 		return
 
 	emoji_name = reaction.emoji.name
-
+	#if the emoji added is an element emoji
 	if emoji_name in c.elements.keys():
 
 		guild = client.get_guild(reaction.guild_id)
@@ -76,7 +86,7 @@ async def on_raw_reaction_add(reaction):
 		role_name = c.elements[emoji_name]
 
 		role = discord.utils.get(guild.roles,name=role_name)
-
+		#adds the role corresponding to the emoji to the member
 		await reaction.member.add_roles(role)
 
 		print(f"Added role {role_name} to {reaction.member.name}.")
@@ -84,7 +94,7 @@ async def on_raw_reaction_add(reaction):
 
 @client.event
 async def on_raw_reaction_remove(reaction):
-
+	#if the message that got a reaction removed is the chooser message
 	if reaction.message_id != role_chooser_msg_id:
 		return
 
@@ -93,11 +103,11 @@ async def on_raw_reaction_remove(reaction):
 
 	emoji_name = reaction.emoji.name
 	role_name = c.elements[emoji_name]
-
+	# if the role to remove is part of the member roles
 	if role_name in {role.name for role in member.roles}:
 
 		role = discord.utils.get(member.roles,name=role_name)
-
+		#remove the role to the user
 		await member.remove_roles(role)
 
 		print(f"Removed role {role_name} to {member.name}.")
